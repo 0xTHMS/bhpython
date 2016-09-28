@@ -3,6 +3,7 @@ import threading
 
 bind_ip = "0.0.0.0"
 bind_port = 1337
+nbclients = 0
 
 # server object
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,21 +16,25 @@ server.listen(5)
 print "Listening on %s port %s" % (bind_ip, bind_port)
 
 
-def handle_client(client_socket):
+def handle_client(client_socket,nbclients):
     # print what client sends.
     request = client_socket.recv(1024)
-    print "Received %s " % request
+    print "Received %s\r\n " % request
 
     client_socket.send("ACK!")
     client_socket.close()
+    nbclients -= 1
 
 while True:
     (client,addr) = server.accept()
+    nbclients += 1
     print "Accepted connection from %s on port %s" % (addr[0],addr[1])
 
-    # thread for out client
-    client_handler = threading.Thread(target=handle_client, args=(client,))
-    client_handler.start()
-
+    if nbclients < 5:
+        # thread for out client
+        client_handler = threading.Thread(target=handle_client, args=(client,nbclients,))
+        client_handler.start()
+    else:
+        print "please wait"
 
 
