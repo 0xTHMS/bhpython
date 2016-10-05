@@ -23,18 +23,14 @@ def handle_client(client_socket,nbclients):
 
     client_socket.send("ACK!")
     client_socket.close()
-    nbclients -= 1
 
 while True:
     (client,addr) = server.accept()
-    nbclients += 1
     print "Accepted connection from %s on port %s" % (addr[0],addr[1])
 
-    if nbclients < 5:
         # thread for out client
-        client_handler = threading.Thread(target=handle_client, args=(client,nbclients,))
-        client_handler.start()
-    else:
-        print "please wait"
+    client_handler = threading.Thread(target=handle_client, args=(client,nbclients,))
+    client_handler.start()
+
 
 
