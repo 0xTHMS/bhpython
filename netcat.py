@@ -4,7 +4,6 @@ import getopt
 import threading
 import subprocess
 
-
 # define some global vars
 listen = False
 command = False
@@ -23,50 +22,51 @@ def usage():
 
 
 
-def main():
-    global listen
-    global port
+def server_loop():
+    global target
+    if not len(target)
+        """ Listens on all interfaces """
+        target = "0.0.0.0"
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((target, port))
+    server.listen(5)
+
+    while True:
+        client_socket, addr = server.accept()
+        client_thread = threading.Thread(target=client_handler,args=(client_socket,))
+        client_thread.start()
+
+
+def run_command(command):
+    """
+    :param command: (string) input command-line
+    :return: (string) output command-line
+    """
+    # trim newline
+    command = command.rstrip()
+    try:
+        output = subprocess.check_output(command,stderr=subprocess.STDOUT, shell=True)
+    except:
+        output = "Failed to exec command with subprocess pymodule.\r\n"
+
+    return output
+
+
+def client_handler(client_socket):
+    global upload
     global execute
     global command
-    global upload_destination
-    global target
 
-    if not len(sys.argv[1:]):
-        usage()
+    # check for upload
+    if len(upload_destination):
+        file_buffer = ""
 
-    # handle command line args
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu:", ["help","listen","execute","target","port","command","upload"])
-    except getopt.GetoptError as err:
-        print "An error occured"  + str(err)
-        usage()
-
-    for o,a in opts:
-        if o in ("-h", "--help"):
-            usage()
-        elif o in ("-l", "--listen"):
-            listen = True
-        elif o in ("-c", "--commandshell"):
-            command = True
-        elif o in ("-e", "--execute"):
-            execute = a
-        elif o in ("-t", "--target"):
-            target = a
-        elif o in ("-p", "--port"):
-            port = int(a)
-        else:
-            assert False,"Unhandled option"
+        # keep reading until none is available
+        while True:
+            answer = client_socket.recv()
 
 
-    if not listen and len(target) and port > 0:
-        buffer = sys.stdin.read()
-        client_sender(buffer)
-
-    # Let's first handle listen and execute
-    if listen:
-        server_loop()
-
-main()
 
 
 def client_sender(buffer):
@@ -75,11 +75,11 @@ def client_sender(buffer):
 
     try:
         # connect to the client
-        client.connect((target,port))
+        client.connect((target, port))
         if len(buffer):
             client.send(buffer)
         while True:
-            
+
             # waiting for reply
             recv_len = 1
             response = ""
@@ -104,9 +104,49 @@ def client_sender(buffer):
 
 
 
-def server_loop():
-    print "I r the server loop"
+def main():
+    global listen
+    global port
+    global execute
+    global command
+    global upload_destination
+    global target
+
+    if not len(sys.argv[1:]):
+        usage()
+
+    # handle command line args
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu:",
+                                   ["help", "listen", "execute", "target", "port", "command", "upload"])
+    except getopt.GetoptError as err:
+        print "An error occured" + str(err)
+        usage()
+
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+        elif o in ("-l", "--listen"):
+            listen = True
+        elif o in ("-c", "--commandshell"):
+            command = True
+        elif o in ("-e", "--execute"):
+            execute = a
+        elif o in ("-t", "--target"):
+            target = a
+        elif o in ("-p", "--port"):
+            port = int(a)
+        else:
+            assert False, "Unhandled option"
+
+    if not listen and len(target) and port > 0:
+        buffer = sys.stdin.read()
+        client_sender(buffer)
+
+    # Let's first handle listen and execute
+    if listen:
+        server_loop()
 
 
-
+main()
 
