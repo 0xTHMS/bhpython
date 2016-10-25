@@ -23,8 +23,30 @@ def receive_from(connection):
     buffer = ""
 
     # we set a 2 second timeout; adjust depending on target
+    connection.settime(2)
+
+        try:
+            # keep reading into the buffer until there is no more data or we time out
+            while True:
+                data = connection.recv(4096)
+
+                if not data:
+                    break
+
+                buffer += data
+        except:
+        pass
+
+        return buffer
 
 
+def request_handler(buffer):
+    # perform packet modifications
+    return buffer
+
+def response_handler(buffer):
+    # perform packet modif
+    return buffer
 
 
 def proxy_handler(client_socket, remote_host, remote_port, receive_first):
