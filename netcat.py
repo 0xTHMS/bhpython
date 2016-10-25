@@ -24,6 +24,7 @@ def usage():
 
 def server_loop():
     global target
+
     if not len(target)
         """ Listens on all interfaces """
         target = "0.0.0.0"
@@ -54,9 +55,12 @@ def run_command(command):
 
 
 def client_handler(client_socket):
+    @type client_socket = socket.socket
+    global upload
     global upload
     global execute
     global command
+
 
     # check for upload
     if len(upload_destination):
