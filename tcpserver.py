@@ -25,11 +25,11 @@ def handle_client(client_socket,nbclients):
     client_socket.close()
 
 while True:
-    (client,addr) = server.accept()
-    print "Accepted connection from %s on port %s" % (addr[0],addr[1])
+    (client, addr) = server.accept()
+    print "Accepted connection from %s on port %s" % (addr[0], addr[1])
 
-        # thread for out client
-    client_handler = threading.Thread(target=handle_client, args=(client,nbclients,))
+    # thread for out client
+    client_handler = threading.Thread(target=handle_client, args=(client, nbclients,))
     client_handler.start()
 
 

@@ -4,7 +4,36 @@ import sys
 import socket
 import threading
 
+
+# this is a pretty hex dumping function directly taken from
+# the comments here:
+# http://code.activestate.com/recipes/142812-hex-dumper/
+def hexdump(src, length=16):
+    result = []
+    digits = 4 if isinstance(src, unicode) else 2
+    for i in xrange(0, len(src), length):
+        s = src[i:i+length]
+        hexa = b' '.join(["%0*X" % (digits, ord(x)) for x in s])
+        text = b''.join([x if 0x20 <= ord(x) < 0x7F else b'.' for x in s])
+    result.append( b"%04X %-*s %s" % (i, length*(digits + 1), hexa,  text) )
+    print b'\n'.join(result)
+
+
+def receive_from(connection):
+    buffer = ""
+
+    # we set a 2 second timeout; adjust depending on target
+
+
+
+
 def proxy_handler(client_socket, remote_host, remote_port, receive_first):
+
+    """
+    Added this for completion..
+    :type client_socket: socket.socket
+
+    """
 
     # connect to remote host
     remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -13,6 +42,56 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
     if receive_first:
         remote_buffer = receive_from(remote_socket)
         hexdump(remote_buffer)
+
+        # send it to our response handler
+        remote_buffer = response_handler(remote_buffer)
+
+        if len(remote_buffer):
+            print "[<==] send %d bytes to localhost." % len(remote_buffer)
+            client_socket.send(remote_buffer)
+
+        # now lets loop and reom from local
+        # send to remote, send to local
+        # rinse, wash, repeat
+        while True:
+            # read from local host
+            local_buffer = receive_from(client_socket)
+
+            if len(local_buffer):
+                print "[==>] received %d bytes from localhosts." % len(local_buffer)
+                hexdump(local_buffer)
+
+                # send it to our request handler
+                local_buffer = request_handler(local_buffer)
+                # send off data to the remote host
+                remote_socket.send(local_buffer)
+                print "[==>] Sent to remote."
+
+            # receive back the response
+            remote_buffer = receive_from(remote_socket)
+
+            if len(remote_buffer):
+                print "[<==] Received %d bytes from remote." % len(remote_buffer)
+                hexdump(remote_buffer)
+
+                # send to our response handler
+                remote_buffer = response_handler(remote_buffer)
+
+                # send the response to local socket
+                client_socket.send(remote_buffer)
+
+                print "[<==] Sent to localhost"
+
+            # if no more dalata on either side, close connection
+            if not len(remote_buffer) or not len(local_buffer)
+                client_socket.close()
+                remote_socket.close()
+                print "[*] No more data, closing connections."
+
+                break
+
+
+
 
 def server_loop(local_host, local_port, remote_host, remote_port, receive_first):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
