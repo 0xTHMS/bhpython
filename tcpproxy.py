@@ -15,29 +15,24 @@ def hexdump(src, length=16):
         s = src[i:i+length]
         hexa = b' '.join(["%0*X" % (digits, ord(x)) for x in s])
         text = b''.join([x if 0x20 <= ord(x) < 0x7F else b'.' for x in s])
-    result.append( b"%04X %-*s %s" % (i, length*(digits + 1), hexa,  text) )
+        result.append(b"%04X %-*s %s" % (i, length*(digits + 1), hexa,  text))
     print b'\n'.join(result)
 
 
 def receive_from(connection):
     buffer = ""
 
-    # we set a 2 second timeout; adjust depending on target
-    connection.settime(2)
-
-        try:
-            # keep reading into the buffer until there is no more data or we time out
-            while True:
-                data = connection.recv(4096)
-
-                if not data:
-                    break
-
-                buffer += data
-        except:
+    connection.settimeout(2)
+    try:
+        while True:
+            data = connection.recv(4096)
+            if not data:
+                break
+            buffer += data
+    except:
         pass
 
-        return buffer
+    return buffer
 
 
 def request_handler(buffer):
@@ -105,14 +100,12 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
                 print "[<==] Sent to localhost"
 
             # if no more dalata on either side, close connection
-            if not len(remote_buffer) or not len(local_buffer)
+            if not len(remote_buffer) or not len(local_buffer):
                 client_socket.close()
                 remote_socket.close()
                 print "[*] No more data, closing connections."
 
                 break
-
-
 
 
 def server_loop(local_host, local_port, remote_host, remote_port, receive_first):
