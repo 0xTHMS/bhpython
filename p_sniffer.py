@@ -30,7 +30,7 @@ class IP(Structure):
 
     def __init__(self, socket_buffer=None):
         # Map protocol constant to theur names
-        self.protocol_map = {1: "ICMP", 6: "TCP", 17:"UDP"}
+        self.protocol_map = {1: "ICMP", 6: "TCP", 17: "UDP"}
 
         # Human readble IP adress
         self.src_address = socket.inet_ntoa(struct.pack("<I", self.src))
@@ -45,10 +45,12 @@ class IP(Structure):
 
 # create a raw socket
 # os.name == posix on Linux, nt on windows.
+
+# Linux forces us to specify the packet we are sniffing. Hoping to find a workaround.
 if os.name == "nt":
     socket_protocol = socket.IPPROTO_IP
 else:
-    socket_protocol = socket.IPPROTO_ICMP
+    socket_protocol = socket.IPPROTO_UDP
 
 sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
 sniffer.bind((host, 0))
